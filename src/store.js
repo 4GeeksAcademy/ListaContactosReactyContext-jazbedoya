@@ -1,32 +1,34 @@
-export const initialStore=()=>{
-  return{
-    message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
-      },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
-      }
-    ]
-  }
-}
+import { createContext,useContext,useReducer } from "react";
 
-export default function storeReducer(store, action = {}) {
+//creamos el contexto
+export const Context = createContext();
+
+//definimos el estado inicial
+
+const initialState ={
+  contacts:[],
+};
+
+//Definimos el reducer: como cambia el estado segun acciones
+const reducer = (state,action)=> {
   switch(action.type){
-    case 'add_task':
+    case "SET_CONTACTS":
 
-      const { id,  color } = action.payload
-
-      return {
-        ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
-      };
+       return {...state,contacts: action.payload };
     default:
-      throw Error('Unknown action.');
-  }    
-}
+      return state;
+
+  }
+};
+//Proveedor: envuelve a la app y entrega {store,dispatch}
+export const ContextProvider =({children}) => {
+  const[ state,dispatch] = useReducer(reducer,initialState);
+  return (
+    <ContextProvider value={{store: state,dispatch}}>
+      {children}
+    </ContextProvider>
+  );
+};
+
+// hook para consumir el contexto final
+export const useGlobalReducer = () => useContext(Context);
