@@ -1,5 +1,34 @@
+import { useEffect } from "react";
+import { useGlobalReducer } from "../store"
+
 const API_URL =" https://playground.4geeks.com/contact/agendas/jazbedoya"
 
-const contact = () =>{
+const Contact = () => {
+    const {store,dispatch} = useGlobalReducer();
+
+
+    useEffect(()=>{
+        getContacts();
+  },  []);
     
-}
+const getContacts = asyn ()=>{
+        const resp = await fetch(`${API_URL}/contacts`)
+        const  data = await resp.json();
+        dispatch({type: "SET_CONTACTS", payload: data.contacts});
+
+  
+};
+
+
+return (
+    <div className="container mt-5">
+        <h2>Lista de Contactos</h2>
+        {store.contacts.map((c)=>(
+            <ContactCard key={c.id} contact={c}/>
+        ))}
+    </div>
+);
+
+};
+  
+export default Contact;
