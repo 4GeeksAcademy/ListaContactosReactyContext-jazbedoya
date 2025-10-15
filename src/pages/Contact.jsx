@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useGlobalReducer } from "../store"
+import { useEffect } from "react"
+import { useGlobalReducer } from"../store.jsx"
 
 const API_URL =" https://playground.4geeks.com/contact/agendas/jazbedoya"
 
@@ -11,7 +11,7 @@ const Contact = () => {
         getContacts();
   },  []);
     
-const getContacts = asyn ()=>{
+const getContacts = async () => {
         const resp = await fetch(`${API_URL}/contacts`)
         const  data = await resp.json();
         dispatch({type: "SET_CONTACTS", payload: data.contacts});

@@ -1,34 +1,33 @@
-import { createContext,useContext,useReducer } from "react";
+import { createContext, useContext, useReducer } from "react";
 
-//creamos el contexto
+// Creamos el contexto global
 export const Context = createContext();
 
-//definimos el estado inicial
-
-const initialState ={
-  contacts:[],
+// Estado inicial
+const initialState = {
+  contacts: [],
 };
 
-//Definimos el reducer: como cambia el estado segun acciones
-const reducer = (state,action)=> {
-  switch(action.type){
+// Reducer
+const reducer = (state, action) => {
+  switch (action.type) {
     case "SET_CONTACTS":
-
-       return {...state,contacts: action.payload };
+      return { ...state, contacts: action.payload };
     default:
       return state;
-
   }
 };
-//Proveedor: envuelve a la app y entrega {store,dispatch}
-export const ContextProvider =({children}) => {
-  const[ state,dispatch] = useReducer(reducer,initialState);
+
+// Proveedor del contexto
+export const ContextProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
   return (
-    <ContextProvider value={{store: state,dispatch}}>
+    <Context.Provider value={{ store: state, dispatch }}>
       {children}
-    </ContextProvider>
+    </Context.Provider>
   );
 };
 
-// hook para consumir el contexto final
+// Hook personalizado para acceder al contexto
 export const useGlobalReducer = () => useContext(Context);

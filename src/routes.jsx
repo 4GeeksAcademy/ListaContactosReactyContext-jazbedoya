@@ -1,36 +1,39 @@
-// Import necessary components and functions from react-router-dom.
-
 import {
-    createBrowserRouter,
-    createRoutesFromElements,
-    Route,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
 } from "react-router-dom";
-import { Layout } from "./pages/Layout";
-import { Home } from "./pages/Home";
-import { Single } from "./pages/Single";
-import { Demo } from "./pages/Demo";
+
+import Layout from "./pages/Layout.jsx";        // si lo usas
+import Home from "./pages/Home.jsx";            // si lo usas
+import Contact from "./pages/Contact.jsx";      //lista
+import AddContact from "./pages/AddContact.jsx"; //crear / editar
+import Single from "./pages/Single.jsx";        // si lo usas
+import Demo from "./pages/Demo.jsx";            // si lo usas
+
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
-    // CreateRoutesFromElements function allows you to build route elements declaratively.
-    // Create your routes here, if you want to keep the Navbar and Footer in all views, add your new routes inside the containing Route.
-    // Root, on the contrary, create a sister Route, if you have doubts, try it!
-    // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
-    // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
+    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
+      
+      {/* Home / Landing */}
+      <Route path="/" element={<Home />} />
 
-      // Root Route: All navigation will start from here.
-      <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+      {/* Lista de contactos */}
+      <Route path="/contacts" element={<Contact />} />
 
-        {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
-        <Route path= "/" element={<Home />} />
-        <Route path="/single/:theId" element={ <Single />} />  {/* Dynamic route for single items */}
-        <Route path="/demo" element={<Demo />} />
+      {/* Crear contacto */}
+      <Route path="/add" element={<AddContact />} />
 
-        {/* NUEVAS RUTAS D */}
-        <Route path="/contacts" element={<Contact />} />       {/* Leer lista */}
-        <Route path="/add" element={<AddContact />} />         {/* Crear */}
-        <Route path="/edit/:id" element={<AddContact />} />    {/* Editar */}
+      {/* Editar contacto */}
+      <Route path="/edit/:id" element={<AddContact />} />
 
-      </Route>
+      {/* Vista individual (si la usas) */}
+      <Route path="/single/:theId" element={<Single />} />
+
+      {/* Demo (si la usas) */}
+      <Route path="/demo" element={<Demo />} />
+    
+    </Route>
     )
 );
