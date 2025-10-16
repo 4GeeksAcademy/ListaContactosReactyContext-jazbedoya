@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 
 import Layout from "./pages/Layout.jsx";        // si lo usas
-import Home from "./pages/Home.jsx";            // si lo usas
+
 import Contact from "./pages/Contact.jsx";      //lista
 import AddContact from "./pages/AddContact.jsx"; //crear / editar
 import Single from "./pages/Single.jsx";        // si lo usas
@@ -13,14 +13,11 @@ import Demo from "./pages/Demo.jsx";            // si lo usas
 
 
 export const router = createBrowserRouter(
-    createRoutesFromElements(
-    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
-      
-      {/* Home / Landing */}
-      <Route path="/" element={<Home />} />
+  createRoutesFromElements(
+    <Route element={<Layout />} errorElement={<h1>Not found!</h1>}>
 
-      {/* Lista de contactos */}
-      <Route path="/contacts" element={<Contact />} />
+      {/* Lista de contactos en la ruta "/" */}
+      <Route path="/" element={<Contact />} />
 
       {/* Crear contacto */}
       <Route path="/add" element={<AddContact />} />
@@ -33,7 +30,7 @@ export const router = createBrowserRouter(
 
       {/* Demo (si la usas) */}
       <Route path="/demo" element={<Demo />} />
-    
+
     </Route>
-    )
+  )
 );
