@@ -13,20 +13,18 @@ const Contact = () => {
   }, []);
 
   // 2 Obtener todos los contactos (GET)
-  const getContacts = async () => {
-    try {
-      const resp = await fetch(`${API_URL}/contacts`);
-      if (!resp.ok) throw new Error("Error al obtener contactos");
-
-      const data = await resp.json();
-      dispatch({
-        type: "SET_CONTACTS",
-        payload: data.contacts || [],
-      });
-    } catch (error) {
-      console.error("Error en getContacts:", error);
-    }
-  };
+  constgi getContacts = async (dispatch) => {
+  dispatch({ type: "LOADING" });
+  try {
+    const resp = await fetch(`${BASE_URL}/agenda/${AGENDA_SLUG}`);
+    if (!resp.ok) throw new Error(`Error HTTP: ${resp.status}`);
+    const data = await resp.json();
+    dispatch({ type: "SET_CONTACTS", payload: data });
+  } catch (err) {
+    console.error("Error en getContacts:", err);
+    dispatch({ type: "ERROR", payload: err.message });
+  }
+};
 
   // 3 Eliminar contacto (DELETE)
   const deleteContact = async (id) => {
