@@ -1,102 +1,102 @@
-import React, {useState} from "react";
-import { useNavigate } from "react-router-dom";
-import { useGlobalReducer } from "../store";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGlobalContext } from "../store.jsx";
 
-const API_URL = "https://playground.4geeks.com/contact/agendas/jazbedoya";
+const AddContact = () => {
+  const { store, addContact, updateContact } = useGlobalContext();
+  const navigate = useNavigate();
+  const { id } = useParams();
 
-const AddContact = () =>{
-    const {dispatch} = useGlobalReducer();
-    const navigate = useNavigate();
-    
-    const[form,setForm] = useState({
-        fullname: "",
-        email: "",
-        address:"",
-        phone:"",
+  //Estado local del formulario
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    address: "",
+    phone: "",
+  });
 
-    });
+  // Si hay un ID, cargar datos del contacto para editar
+  useEffect(() => {
+    if (id && store.contacts.length > 0) {
+      const contactToEdit = store.contacts.find((c) => c.id === parseInt(id));
+      if (contactToEdit) setFormData(contactToEdit);
+    }
+  }, [id, store.contacts]);
 
+  // Manejar cambios en el formulario
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-const handleChange = (e) =>{
-    setForm({...form,[e.target.name]: e.target.value});
-};
+  // Guardar contacto
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-const handleSubmit = async(e)=>{
-    e. preventDefault();
+    if (!formData.full_name || !formData.email || !formData.phone || !formData.address) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
 
-try{
+    try {
+      if (id) {
+        // Actualizar contacto existente
+        await updateContact(id, formData);
+        alert("Contacto actualizado correctamente ");
+      } else {
+        // Crear nuevo contacto
+        await addContact(formData);
+        alert("Contacto agregado correctamente ");
+      }
+      navigate("/"); // Volver a la lista
+    } catch (err) {
+      console.error("Error al guardar contacto:", err);
+      alert(" Hubo un error al guardar el contacto");
+    }
+  };
 
-    //CRear agenda si no existe
-    await fetch(API_URL,{method : "POST"});
+  return (
+    <div className="container text-center mt-5">
+      <h2 className="mb-4">{id ? "Editar contacto" : "Add a new contact"}</h2>
 
-     //Crear contacto
-
-   const resp =  await fetch(`${API_URL}/contacts`,{
-        method: "POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(form),
-    });
-    
-    if (!resp.ok) throw new Error("Error al crear contacto");
-    const newContact = await resp.json();
-
-
-    //3- Guardar el context
-    dispatch({
-        type: "SET_CONTACTS",
-        payload: (prev) => [...prev, newContact],
-    });
-
-    alert ("Contacto agregado correctamente")
-    
-
-    // Redirigir a Contacts
-    navigate("/contacts");
-
-
-
-}catch(error) {
-    console.error("ERROR en el handleSubmit:", error);
-    alert("Hubo  un problema al agregar conatcto")
-
-}
-};
-
-return (
-    <div className="container mt-5">
-        <h2>Agregar Contacto</h2>
-        <form onSubmit={handleSubmit}>
-            <input
-            className="form-control mb-2"
-            placeholder="Nombre"
-            name = "full_name"
-            onChange= {handleChange}
-            />
-        
-            <input
-            className="form-control mb-2"
-            placeholder="Email"
-            name = "email"
-            onChange= {handleChange}
-            />
-     
-            <input
-            className="form-control mb-2"
-            placeholder="Telefono"
-            name = "phone"
-            onChange= {handleChange}
-            />
-            <input
-            className="form-control mb-2"
-            placeholder="Direccion"
-            name = "addres"
-            onChange= {handleChange}
-            />
-            <button className="btn-btn-primary">Guardar</button>
-        </form>
+      <form onSubmit={handleSubmit} className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: "400px" }}>
+        <input
+          type="text"
+          name="full_name"
+          placeholder="Nombre completo"
+          className="form-control"
+          value={formData.full_name}
+          onChange={handleChange}
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          className="form-control"
+          value={formData.email}
+          onChange={handleChange}
+        />
+        <input
+          type="text"
+          name="address"
+          placeholder="Dirección"
+          className="form-control"
+          value={formData.address}
+          onChange={handleChange}
+        />
+        <input
+          type="text"
+          name="phone"
+          placeholder="Teléfono"
+          className="form-control"
+          value={formData.phone}
+          onChange={handleChange}
+        />
+        <button className="btn btn-primary mt-3" type="submit">
+          Save
+        </button>
+      </form>
     </div>
-   );
+  );
 };
 
 export default AddContact;
-       

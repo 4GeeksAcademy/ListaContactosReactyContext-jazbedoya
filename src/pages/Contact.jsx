@@ -1,60 +1,56 @@
-import { useEffect } from "react";
-import { useGlobalReducer } from "../store.jsx";
-import ContactCard from "./ContactCard.jsx";
-
-const API_URL = "https://playground.4geeks.com/contact/agendas/jazbedoya";
+import React, { useEffect } from "react";
+import { useGlobalContext } from "../store.jsx";
 
 const Contact = () => {
-  const { store, dispatch } = useGlobalReducer();
+  const { store, getContacts, deleteContact } = useGlobalContext();
 
-  // 1 Cargar contactos al iniciar
+  // 🧩 Cargar contactos al montar el componente
   useEffect(() => {
     getContacts();
   }, []);
 
-  // 2 Obtener todos los contactos (GET)
-  constgi getContacts = async (dispatch) => {
-  dispatch({ type: "LOADING" });
-  try {
-    const resp = await fetch(`${BASE_URL}/agenda/${AGENDA_SLUG}`);
-    if (!resp.ok) throw new Error(`Error HTTP: ${resp.status}`);
-    const data = await resp.json();
-    dispatch({ type: "SET_CONTACTS", payload: data });
-  } catch (err) {
-    console.error("Error en getContacts:", err);
-    dispatch({ type: "ERROR", payload: err.message });
+  // ⏳ Estado de carga
+  if (store.loading) {
+    return <p className="text-center mt-5">Cargando contactos...</p>;
   }
-};
 
-  // 3 Eliminar contacto (DELETE)
-  const deleteContact = async (id) => {
-    try {
-      const resp = await fetch(`${API_URL}/contacts/${id}`, {
-        method: "DELETE",
-      });
-      if (!resp.ok) throw new Error("Error al eliminar");
+  // ⚠️ Error
+  if (store.error) {
+    return (
+      <p className="text-center text-danger mt-5">
+        Error: {store.error}
+      </p>
+    );
+  }
 
-      // Vuelve a cargar los contactos después de borrar
-      getContacts();
-    } catch (error) {
-      console.error("Error al eliminar contacto:", error);
-    }
-  };
-
+  // ✅ Renderizar lista de contactos
   return (
     <div className="container mt-5">
-      <h2>Lista de Contactos</h2>
+      <h2 className="mb-4 text-center">Lista de contactos</h2>
 
-      {store.contacts.length === 0 ? (
-        <p>No hay contactos.</p>
-      ) : (
+      {Array.isArray(store.contacts) && store.contacts.length > 0 ? (
         store.contacts.map((c) => (
-          <ContactCard 
-            key={c.id} 
-            contact={c} 
-            deleteContact={deleteContact}  //Se pasa la función
-          />
+          <div
+            key={c.id}
+            className="d-flex justify-content-between align-items-center border rounded p-3 mb-2 shadow-sm"
+          >
+            <div>
+              <strong>{c.full_name}</strong> <br />
+              <small>{c.email}</small> <br />
+              <small>📞 {c.phone}</small> <br />
+              <small>🏠 {c.address}</small>
+            </div>
+
+            <button
+              onClick={() => deleteContact(c.id)}
+              className="btn btn-danger btn-sm"
+            >
+              Eliminar
+            </button>
+          </div>
         ))
+      ) : (
+        <p className="text-center mt-4">No hay contactos disponibles.</p>
       )}
     </div>
   );

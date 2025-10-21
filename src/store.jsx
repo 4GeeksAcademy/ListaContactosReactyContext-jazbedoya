@@ -1,80 +1,156 @@
-import { createContext, useContext, useReducer } from "react";
-import AddContact from "./pages/AddContact";
+import React, { createContext, useReducer, useContext, useEffect } from "react";
 
-// 1 Creamos el contexto global
-export const Context = createContext();
+const BASE_URL = "https://playground.4geeks.com/contact";
+const AGENDA_SLUG = "jazbedoya";
 
-// 2 Estado inicial
 const initialState = {
   contacts: [],
+  loading: false,
+  error: null,
 };
 
-// 3 Reducer con todas las acciones 
+// 🧠 Reducer global
 const reducer = (state, action) => {
   switch (action.type) {
-    case "SET_CONTACTS": //leer
-      return { ...state, contacts: action.payload };
-    
-    case "ADD_CONTACT": //CREAR
-      return{...state, contacts:[...state.contacts,action.payload]};
-
-    case "DELETE_CONTACT": //Eliminar
-       return {
-         ...state,
-         contacts: state.contacts.filter(
-          (contact)=> contact.id !== action.payload
-         ),
-
-       };
-
-    case "UPDATE_CONTACT": //EDITAR
-      return{
-        ...state,
-        contacts: state.contacts.map((c)=>
-          c.id == action.payload.id? action.payload : c
-        ),
-      };
-        
+    case "LOADING":
+      return { ...state, loading: true };
+    case "SET_CONTACTS":
+      return { ...state, loading: false, contacts: action.payload };
+    case "ERROR":
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
-
   }
 };
 
+const Context = createContext();
 
+// ✅ Crear agenda si no existe
+const ensureAgendaExists = async () => {
+  try {
+    const resp = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}`);
+    if (resp.status === 404) {
+      const create = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}`, {
+        method: "POST",
+      });
+      if (!create.ok) throw new Error("Error al crear la agenda");
+      console.log("✅ Agenda creada correctamente");
+    }
+  } catch (err) {
+    console.error("Error verificando o creando agenda:", err);
+  }
+};
 
-// Proveedor del contexto
+// 📥 Obtener contactos
+const getContacts = async (dispatch) => {
+  dispatch({ type: "LOADING" });
+  try {
+    const resp = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}/contacts`);
+    if (!resp.ok) throw new Error("Error al obtener contactos");
+    const data = await resp.json();
+    dispatch({ type: "SET_CONTACTS", payload: data });
+  } catch (err) {
+    console.error("Error en getContacts:", err);
+    dispatch({ type: "ERROR", payload: err.message });
+  }
+};
+
+// ➕ Crear contacto
+const addContact = async (dispatch, newContact) => {
+  try {
+    // Asegurarse de que todos los campos requeridos estén definidos
+    const contactWithAgenda = {
+      full_name: newContact.full_name || "",
+      email: newContact.email || "",
+      address: newContact.address || "",
+      phone: newContact.phone || "",
+      agenda_slug: AGENDA_SLUG,
+    };
+
+    // Validar antes de enviar
+    if (
+      !contactWithAgenda.full_name ||
+      !contactWithAgenda.email ||
+      !contactWithAgenda.address ||
+      !contactWithAgenda.phone
+    ) {
+      throw new Error("Todos los campos son obligatorios");
+    }
+
+    const resp = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}/contacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(contactWithAgenda),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      console.error("Error del servidor:", data);
+      throw new Error(data.detail ? data.detail[0].msg : "Error al crear contacto");
+    }
+
+    console.log("✅ Contacto agregado correctamente:", data);
+    getContacts(dispatch);
+  } catch (err) {
+    console.error("Error al agregar contacto:", err);
+  }
+};
+
+// ✏️ Actualizar contacto
+const updateContact = async (dispatch, id, updatedContact) => {
+  try {
+    const resp = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}/contacts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...updatedContact,
+        agenda_slug: AGENDA_SLUG,
+      }),
+    });
+    if (!resp.ok) throw new Error("Error al actualizar contacto");
+    console.log("✅ Contacto actualizado correctamente");
+    getContacts(dispatch);
+  } catch (err) {
+    console.error("Error al actualizar contacto:", err);
+  }
+};
+
+// ❌ Eliminar contacto
+const deleteContact = async (dispatch, id) => {
+  try {
+    const resp = await fetch(`${BASE_URL}/agendas/${AGENDA_SLUG}/contacts/${id}`, {
+      method: "DELETE",
+    });
+    if (!resp.ok) throw new Error("Error al eliminar contacto");
+    console.log("🗑️ Contacto eliminado correctamente");
+    getContacts(dispatch);
+  } catch (err) {
+    console.error("Error al eliminar contacto:", err);
+  }
+};
+
 export const ContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [store, dispatch] = useReducer(reducer, initialState);
 
-  //helpers
-  const AddContact =(newContact) => {
-    dispatch({type:"ADD_CONTACT", payload : newContact});
-  }
-   
-  const deleteContact =(id) => {
-    dispatch({type:"DELETE_CONTACT", payload : id});
+  useEffect(() => {
+    ensureAgendaExists().then(() => getContacts(dispatch));
+  }, []);
 
-   }
-
-  const updateContact =(updatedContact) => {
-    dispatch({type:"UPDATE_CONTACT", payload : updatedContact});
-  }
-
-
-
- return (
-    <Context.Provider value={{ 
-      store: state, 
-      dispatch,
-      AddContact,
-      deleteContact,
-      updateContact
-       }}>
+  return (
+    <Context.Provider
+      value={{
+        store,
+        dispatch,
+        getContacts,
+        addContact,
+        updateContact,
+        deleteContact,
+      }}
+    >
       {children}
     </Context.Provider>
   );
 };
 
-// Hook personalizado para acceder al contexto
-export const useGlobalReducer = () => useContext(Context);
+export const useGlobalContext = () => useContext(Context);
