@@ -1,13 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
-import { router } from "./routes.jsx";
-import { ContextProvider } from "./store.jsx"; // 👈 Importa bien el contexto
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ContextProvider } from "./store";
+import { ContactList } from "./pages/ContactList";
+import { AddContact } from "./pages/AddContact";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ContextProvider>   {/* 👈 Debe envolver al RouterProvider */}
-      <RouterProvider router={router} />
+    <ContextProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<ContactList />} />
+          <Route path="/add" element={<AddContact />} />
+        </Routes>
+      </BrowserRouter>
     </ContextProvider>
   </React.StrictMode>
 );
